@@ -24,10 +24,26 @@ public class Serializar_funciones {
 	 * Convertir objeto a bytes[], el objeto a serializar tiene que tener
 	 * implementado Serializable.
 	 * 
-	 * @param unObjetoSerializable
-	 *            {@link Object} objeto a serializar
+	 * @param unObjetoSerializable {@link Object} objeto a serializar
 	 * @return Array de bytes.
 	 */
+	public static byte[] longToBytes(long l) {
+		byte[] result = new byte[Long.BYTES];
+		for (int i = Long.BYTES - 1; i >= 0; i--) {
+			result[i] = (byte) (l & 0xFF);
+			l >>= Byte.SIZE;
+		}
+		return result;
+	}
+
+	public static long bytesToLong(final byte[] b) {
+		long result = 0;
+		for (int i = 0; i < Long.BYTES; i++) {
+			result <<= Byte.SIZE;
+			result |= (b[i] & 0xFF);
+		}
+		return result;
+	}
 
 	public static byte[] convertirAByteArray(Object unObjetoSerializable) {
 		ByteArrayOutputStream bs = new ByteArrayOutputStream();
@@ -48,11 +64,10 @@ public class Serializar_funciones {
 	}
 
 	/**
-	 * Convertir byte[] al objeto original, el objeto a deserializar tiene que
-	 * tener implementado Serializable.
+	 * Convertir byte[] al objeto original, el objeto a deserializar tiene que tener
+	 * implementado Serializable.
 	 * 
-	 * @param bytes
-	 *            array de bytes a convertir en el objeto original.
+	 * @param bytes array de bytes a convertir en el objeto original.
 	 * @return Objeto deserializado.
 	 */
 
@@ -76,8 +91,7 @@ public class Serializar_funciones {
 	/**
 	 * Convertir una imagen a byte[]
 	 * 
-	 * @param imagen
-	 *            {@link BufferedImage} imagen a serializar
+	 * @param imagen {@link BufferedImage} imagen a serializar
 	 * @return byte[].
 	 */
 
@@ -101,8 +115,7 @@ public class Serializar_funciones {
 	/**
 	 * Convertir byte[] a imagen original.
 	 * 
-	 * @param imagen
-	 *            {@link BufferedImage} imagen a serializar
+	 * @param imagen {@link BufferedImage} imagen a serializar
 	 * @return {@link BufferedImage} original.
 	 */
 

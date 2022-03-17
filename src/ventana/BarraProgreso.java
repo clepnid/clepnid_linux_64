@@ -31,6 +31,9 @@ public class BarraProgreso extends Composite {
 	public Label lblCopiando;
 	public Ventana ventana;
 	public TaskItem taskItem;
+	public String nombre;
+	public int porcentaje;
+	private boolean estaVisible;
 
 	/**
 	 * Constructor del panel con la barra de progreso.
@@ -51,6 +54,7 @@ public class BarraProgreso extends Composite {
 		this.ventana = ventana;
 		this.display = display;
 		this.shell = shell;
+		
 		setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 		setLayout(new GridLayout(1, false));
 
@@ -61,7 +65,7 @@ public class BarraProgreso extends Composite {
 		this.lblCopiando = new Label(this, SWT.NONE);
 		lblCopiando.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 		lblCopiando.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		lblCopiando.setText("Copiando ...");
+		lblCopiando.setText(Ventana.idioma.getProperty("progreso_copiando")+" ...");
 
 		barraProgreso = new ProgressBar(this, SWT.NONE);
 		barraProgreso.setMinimum(0);
@@ -76,6 +80,10 @@ public class BarraProgreso extends Composite {
 		lblPorcentajeBarraProgreso.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		lblPorcentajeBarraProgreso.setText("0%");
 		lblPorcentajeBarraProgreso.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		estaVisible = true;
+		nombre = new String();
+		nombre = "";
+		porcentaje = 0;
 
 	}
 
@@ -87,22 +95,34 @@ public class BarraProgreso extends Composite {
 	 *                  la barra de progreso.
 	 */
 
-	public void esconderPanelProgressBar(final boolean condicion) {
+	public void esconderPanelProgressBar(boolean condicion) {
 		display.asyncExec(new Runnable() {
 			public void run() {
 				if (!condicion) {
 					gd_panProgreso.exclude = false;
 					setLayoutData(gd_panProgreso);
 					setVisible(true);
+					estaVisible = true;
 					ventana.panCuerpo.layout();
 				} else {
 					gd_panProgreso.exclude = true;
-					setVisible(false);
-					ventana.panCuerpo.layout();
+					try {
+						setVisible(false);
+						ventana.panCuerpo.layout();
+						estaVisible = false;
+					} catch (org.eclipse.swt.SWTException e) {
+						;
+					}
+
 				}
 			}
 		});
 
+	}
+
+	public boolean estaVisible() {
+		// TODO Auto-generated method stub
+		return estaVisible;
 	}
 
 	/**
@@ -131,7 +151,8 @@ public class BarraProgreso extends Composite {
 	 * @param numero a mostrar por pantalla referente al porcentaje de la copia.
 	 */
 
-	public void setPorcentaje(final int numero) {
+	public void setPorcentaje(int numero) {
+		this.porcentaje = numero;
 		display.asyncExec(new Runnable() {
 			public void run() {
 				barraProgreso.setSelection(numero);
@@ -148,13 +169,14 @@ public class BarraProgreso extends Composite {
 	 * Define el nombre que se va a mostrar en el {@link Composite}.
 	 * 
 	 * @param nombre {@link String} a mostrar por pantalla referente al nombre de la
-	 *                copia.
+	 *               copia.
 	 */
 
-	public void setNombre(final String nombre) {
+	public void setNombre(String nombre) {
+		this.nombre = nombre;
 		display.asyncExec(new Runnable() {
 			public void run() {
-				lblCopiando.setText("Copiando " + nombre + "...");
+				lblCopiando.setText(Ventana.idioma.getProperty("progreso_copiando") + " " + nombre + "...");
 			}
 		});
 	}
@@ -164,6 +186,8 @@ public class BarraProgreso extends Composite {
 	 */
 
 	public void setPorcentajeCero() {
+		this.nombre = "";
+		this.porcentaje = 0;
 		ventana.display.asyncExec(new Runnable() {
 			public void run() {
 				taskItem = ventana.panBarraProgreso.getTaskBarItem();

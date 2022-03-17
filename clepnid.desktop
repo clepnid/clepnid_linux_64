@@ -2,7 +2,7 @@
 Type=Application
 Icon=/etc/clepnid/src/imagenes/clipboard.gif
 Hidden=false
-Exec=/etc/clepnid/clepnid_linux_64.jar
+Exec=/etc/clepnid/ejecutar.sh
 Path=/etc/clepnid
 Name=Clepnid
 Name[es_ES]=Clepnid
