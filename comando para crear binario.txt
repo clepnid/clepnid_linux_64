@@ -1,0 +1,4 @@
+echo '#!/usr/bin/java -jar' > mybin
+cat clepnid_linux_64.jar >> mybin
+chmod +x mybin
+./mybin

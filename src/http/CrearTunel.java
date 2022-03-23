@@ -27,12 +27,9 @@ public class CrearTunel extends Thread {
 	public void run() {
 		// TODO Auto-generated method stub
 		Runtime rt = Runtime.getRuntime();
-		try {
-			rt.exec("chmod 777 ./src/localtunnel/lt-linux");
-		} catch (IOException e2) {
-			System.out.print("");
-		}
-		String commands = getComandos();
+		/*linux
+		 * String commands = getComandos();*/
+		String[] commands = getComandos();
 		Process proc;
 		BufferedReader stdInput = null;
 		BufferedReader stdError = null;
@@ -108,14 +105,26 @@ public class CrearTunel extends Thread {
 
 	}
 
-	private String getComandos() {
+	private String[] getComandos() {
+		if (nameDns != null) {
+			String[] commands = {"./src/localtunnel/lt-win.exe", "--port", String.valueOf(Http.getPuertoHTTP()), "--subdomain", this.nameDns };
+			return commands;
+		} else {
+			String[] commands = {"./src/localtunnel/lt-win.exe", "--port", String.valueOf(Http.getPuertoHTTP()) };
+			return commands;
+		}
+	}
+	
+	/*linux
+	 * private String getComandos() {
 		if (nameDns != null && !nameDns.equals("")) {
 			return "./src/localtunnel/lt-linux --port "+ String.valueOf(Http.getPuertoHTTP()) + " --subdomain "+ this.nameDns ;
 			
 		} else {
 			return "./src/localtunnel/lt-linux --port "+ String.valueOf(Http.getPuertoHTTP());
 		}
-	}
+	}*/
+	
 	public String getStandarOutput() {
 		return standarOutput;
 	}

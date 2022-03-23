@@ -15,6 +15,7 @@ import http.ConfiguracionJson;
 import http.CrearQR;
 import http.CrearTunel;
 import http.Http;
+import http.OpcionesModulosHttp;
 import http.WebJson;
 import idioma.Idioma;
 import portapapeles.Contenido;
@@ -28,6 +29,7 @@ import java.awt.SystemTray;
 import java.awt.Toolkit;
 import java.awt.TrayIcon;
 import java.awt.TrayIcon.MessageType;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -160,7 +162,9 @@ public class Ventana {
 					http.crearUrlArchivo(nombre, contenido.listaFicheros.get(i)[4]);
 				}
 			}
-			if (!yaIntroducido && Clepnid_WebJson.config != null) {
+			boolean esCorrecto = OpcionesModulosHttp.esCorrecto(new File(contenido.listaFicheros.get(i)[4]));
+			
+			if (!yaIntroducido && Clepnid_WebJson.config != null && esCorrecto) {
 				System.out.println("hola");
 				WebJson webArchivo = new WebJson();
 				webArchivo.setArchivo();
@@ -847,6 +851,8 @@ public class Ventana {
 		reiniciar = true;
 		cerrar();
 	}
+	
+	//muestra las opciones de Configuracion de la aplicacion
 
 	public Shell crearVentanaConfiguracion(Shell parent) {
 		Shell hijo = new Shell(parent, SWT.RESIZE | SWT.CLOSE);
@@ -937,6 +943,28 @@ public class Ventana {
 		idiomas.setEnabled(false);
 		idiomas.setTouchEnabled(false);
 
+		GridData grid_Restriccion = new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1);
+		
+		Label lblRestringirTamanyo = new Label(composite_principal, SWT.NONE);
+		lblRestringirTamanyo.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		lblRestringirTamanyo.setText("Restringir subida de ficheros a:");
+
+		Combo medidaTamanyo = new Combo(composite_principal, SWT.READ_ONLY);
+		medidaTamanyo.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		medidaTamanyo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		String medidaTamanyo_items[] = { "None", "Kilobyte", "Megabyte", "Gigabyte" };
+		medidaTamanyo.setItems(medidaTamanyo_items);
+		medidaTamanyo.setEnabled(false);
+		medidaTamanyo.setTouchEnabled(false);
+		medidaTamanyo.setLayoutData(grid_Restriccion);
+		
+		Text text_NumeroRestringirTamanyo= new Text(composite_principal, SWT.BORDER);
+		text_NumeroRestringirTamanyo.setEnabled(false);
+		text_NumeroRestringirTamanyo.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		text_NumeroRestringirTamanyo.setEditable(false);
+		text_NumeroRestringirTamanyo.setLayoutData(grid_Restriccion);
+
+
 		Composite composite_btn = new Composite(hijo, SWT.NONE);
 		composite_btn.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 		composite_btn.setLayout(new GridLayout(2, false));
@@ -981,6 +1009,12 @@ public class Ventana {
 			if (config.idioma != null) {
 				idiomas.setText(config.idioma);
 			}
+			if (config.filesizemedida != null) {
+				medidaTamanyo.setText(config.filesizemedida.toString());
+				text_NumeroRestringirTamanyo.setText(String.valueOf(config.filesizenumber));
+			}else {
+				medidaTamanyo.setText("None");
+			}
 		} catch (ClassNotFoundException | IOException e2) {
 			// TODO Auto-generated catch block
 			e2.printStackTrace();
@@ -1016,6 +1050,19 @@ public class Ventana {
 					if (!idioma_items[idiomas.getSelectionIndex()].equals(configAux.idioma)) {
 						abrirVentanaReiniciar = true;
 					}
+					if (!OpcionesModulosHttp.FileSizeMedida.valueOf(medidaTamanyo_items[medidaTamanyo.getSelectionIndex()]).equals(configAux.filesizemedida)) {
+						abrirVentanaReiniciar = true;
+					}
+					int filesizenumber;
+					try{
+			            filesizenumber = Integer.parseInt(text_NumeroRestringirTamanyo.getText());
+			        }
+			        catch (NumberFormatException ex){
+			        	filesizenumber = 0;
+			        }
+					if (filesizenumber!=configAux.filesizenumber) {
+						abrirVentanaReiniciar = true;
+					}
 					if (!btnRutasInicioCheckButton.getSelection()==configAux.inicializarRutas) {
 						abrirVentanaReiniciar = true;
 					}
@@ -1031,6 +1078,9 @@ public class Ventana {
 					config.inicializarRutas = btnRutasInicioCheckButton.getSelection();
 					config.recibirEnvios = btnRecibirEnviosCheckButton.getSelection();
 					config.idioma = idioma_items[idiomas.getSelectionIndex()];
+					config.filesizemedida = OpcionesModulosHttp.FileSizeMedida.valueOf(medidaTamanyo_items[medidaTamanyo.getSelectionIndex()]);
+					config.filesizenumber = filesizenumber;
+					
 					try {
 						Configuracion.serializar(config);
 					} catch (IOException e1) {
@@ -1054,6 +1104,11 @@ public class Ventana {
 					btnRecibirEnviosCheckButton.setEnabled(false);
 					btnRutasInicioCheckButton.setEnabled(false);
 					idiomas.setEnabled(false);
+					idiomas.setTouchEnabled(false);
+					medidaTamanyo.setEnabled(false);
+					medidaTamanyo.setTouchEnabled(false);
+					text_NumeroRestringirTamanyo.setEnabled(false);
+					text_NumeroRestringirTamanyo.setEditable(false);
 					idiomas.setTouchEnabled(false);
 					editable = false;
 					btnModificar.setText(idioma.getProperty("configuracion_btnModificar"));
@@ -1085,6 +1140,10 @@ public class Ventana {
 					btnRecibirEnviosCheckButton.setEnabled(true);
 					idiomas.setEnabled(true);
 					idiomas.setTouchEnabled(true);
+					medidaTamanyo.setEnabled(true);
+					medidaTamanyo.setTouchEnabled(true);
+					text_NumeroRestringirTamanyo.setEnabled(true);
+					text_NumeroRestringirTamanyo.setEditable(true);
 					editable = true;
 					btnModificar.setText(idioma.getProperty("configuracion_btnAplicar"));
 				}
@@ -1146,10 +1205,10 @@ public class Ventana {
 
 		rutaQr = "";
 		if (ruta.equals("")) {
-			rutaQr = "http://" + multicastControl.ip_servidor + ":" + Http.getPuertoHTTP() + "/index.html";
+			rutaQr = "http://" + MulticastControl.ip_servidor + ":" + Http.getPuertoHTTP() + "/index.html";
 		} else {
 			if (ruta.equals("HTML")) {
-				rutaQr = "http://" + multicastControl.ip_servidor + ":" + Http.getPuertoHTTP() + "/pagina.html";
+				rutaQr = "http://" + MulticastControl.ip_servidor + ":" + Http.getPuertoHTTP() + "/pagina.html";
 			} else {
 				if (ruta.equals("VIDEO")) {
 					rutaQr = http.getRutaVideo();
@@ -1157,7 +1216,7 @@ public class Ventana {
 					if (ruta.startsWith("http://")) {
 						rutaQr = ruta;
 					} else {
-						rutaQr = "http://" + multicastControl.ip_servidor + ":" + Http.getPuertoHTTP() + "/" + ruta;
+						rutaQr = "http://" + MulticastControl.ip_servidor + ":" + Http.getPuertoHTTP() + "/" + ruta;
 					}
 				}
 			}
@@ -1221,7 +1280,7 @@ public class Ventana {
 		Label label = new Label(composite_principal, SWT.NONE);
 		label.setText("Can't find icon");
 		ImageData image = null;
-		rutaQr = "http://" + multicastControl.ip_servidor + ":" + Http.getPuertoHTTP() + ruta + "/" + nombre;
+		rutaQr = "http://" + MulticastControl.ip_servidor + ":" + Http.getPuertoHTTP() + ruta + "/" + nombre;
 
 		image = CrearQR.crearImagenQr(rutaQr);
 		if (image != null) {

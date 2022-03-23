@@ -17,13 +17,7 @@ public class CerrarTunelWindows extends Thread {
 	public void run() {
 		// TODO Auto-generated method stub
 		Runtime rt = Runtime.getRuntime();
-		String commands = getComandos();
-		try {
-			rt.exec(commands);
-		} catch (IOException e2) {
-			// TODO Auto-generated catch block
-			e2.printStackTrace();
-		}
+		String[] commands = getComandos();
 		Process proc;
 		BufferedReader stdInput = null;
 		BufferedReader stdError = null;
@@ -53,8 +47,14 @@ public class CerrarTunelWindows extends Thread {
 
 	}
 
-	private String getComandos() {
+	private String[] getComandos() {
+		String[] commands = { "taskkill ", "/f", "/im", "lt-win.exe"};
+		return commands;
+	}
+	/*linux
+	 * private String getComandos() {
 		return "killall -9 lt-linux";
 		
-	}
+	}*/
+	
 }

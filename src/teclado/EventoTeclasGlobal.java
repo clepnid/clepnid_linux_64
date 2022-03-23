@@ -417,9 +417,9 @@ public class EventoTeclasGlobal implements NativeKeyListener {
 			Ventana.mensajeTray("Espere a que se reciban los ficheros compartidos", MessageType.INFO);
 		}
 	}
+
 	public Clip getClip() {
 		return clip;
 	}
-
 
 }
