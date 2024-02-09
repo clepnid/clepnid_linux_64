@@ -37,7 +37,8 @@ import ventana.Ventana;
  */
 
 public class EventoTeclasGlobal implements NativeKeyListener {
-
+	
+	private static EventoTeclasGlobal INSTANCE;
 	private Set<Integer> pressed = new HashSet<Integer>();
 	private static boolean copiar = false, pegar = false;
 	private Clip clip;
@@ -49,7 +50,7 @@ public class EventoTeclasGlobal implements NativeKeyListener {
 	private Ventana ventana;
 	public static boolean clienteFicherosFuncionando = false;
 
-	EventoTeclasGlobal(Ventana ventana) {
+	private EventoTeclasGlobal() {
 		clip = new Clip();
 		flavorListener = new FlavorListener() {
 
@@ -69,8 +70,16 @@ public class EventoTeclasGlobal implements NativeKeyListener {
 		clip.setFlavorListener(flavorListener);
 		stringAnterior = null;
 		ficherosAnterior = null;
-		this.ventana = ventana;
+		this.ventana = Ventana.getInstance();
 	}
+	
+	public static EventoTeclasGlobal getInstance() {
+        if(INSTANCE == null) {
+            INSTANCE = new EventoTeclasGlobal();
+        }
+        
+        return INSTANCE;
+    }
 
 	/**
 	 * Define el evento de pulsar una tecla del sistema, controlando si la
@@ -154,26 +163,17 @@ public class EventoTeclasGlobal implements NativeKeyListener {
 		}
 		clip.tipoContenido = "";
 		clip.contenidoRecogido = null;
-		System.out.println(clip.recogido);
-		System.out.println("habilitar------------------");
-		System.out.println("copiar------------------");
 		clip.pulsadoTeclas = true;
 		PulsarTeclas.copiar();
-		System.out.println("esperar------------------");
 		clip.recogido = false;
-		System.out.println("antes:" + clip.recogido);
 		while (!clip.recogido || clip.copiadoDelSistema) {
-			System.out.println("no recogido");
 			Thread.sleep(100);
-			System.out.println(clip.copiadoDelSistema + ", " + clip.introducido(myString));
 			if ((!clip.copiadoDelSistema && clip.introducido(myString))
 					|| !clip.copiadoDelSistema && !clip.introducido(myString)) {
 				// no se ha seleccionado nada por lo tanto no se puede recoger del portapapeles
 				break;
 			}
 		}
-		System.out.println("SALIR");
-		System.out.println("despues:" + clip.recogido);
 		clip.pulsadoTeclas = false;
 		clip.recogido = false;
 		if (ventana.contenido == null) {
@@ -186,7 +186,6 @@ public class EventoTeclasGlobal implements NativeKeyListener {
 						}
 					}
 					if (string != null) {
-						System.out.println("texto: " + string);
 						if (!string.contentEquals(myString)) {
 							ventanaServidorString(string);
 						}
@@ -196,10 +195,6 @@ public class EventoTeclasGlobal implements NativeKeyListener {
 					List<?> rutas_ficheros = null;
 					synchronized (clip.contenidoRecogido) {
 						rutas_ficheros = (List<?>) clip.contenidoRecogido;
-					}
-					System.out.println("ficheros: ");
-					for (Object object : rutas_ficheros) {
-						System.out.println(object);
 					}
 					ventanaServidorFichero(rutas_ficheros);
 					clip.setContenidoClipboard(backupClip);
@@ -216,7 +211,6 @@ public class EventoTeclasGlobal implements NativeKeyListener {
 							}
 						}
 						if (string != null) {
-							System.out.println("texto: " + string);
 							if (!string.contentEquals(myString)) {
 								if (!string.equals(stringAnterior)) {
 									ventanaServidorString(string);
@@ -232,7 +226,6 @@ public class EventoTeclasGlobal implements NativeKeyListener {
 							}
 						}
 						if (string != null) {
-							System.out.println("texto: " + string);
 							if (!string.contentEquals(myString)) {
 								ventanaServidorString(string);
 							}
@@ -244,10 +237,6 @@ public class EventoTeclasGlobal implements NativeKeyListener {
 						List<?> rutas_ficheros = null;
 						synchronized (clip.contenidoRecogido) {
 							rutas_ficheros = (List<?>) clip.contenidoRecogido;
-						}
-						System.out.println("ficheros: ");
-						for (Object object : rutas_ficheros) {
-							System.out.println(object);
 						}
 						Ficheros ficheros = new Ficheros(rutas_ficheros);
 						Boolean esIgual = true;
@@ -264,10 +253,6 @@ public class EventoTeclasGlobal implements NativeKeyListener {
 						List<?> rutas_ficheros = null;
 						synchronized (clip.contenidoRecogido) {
 							rutas_ficheros = (List<?>) clip.contenidoRecogido;
-						}
-						System.out.println("ficheros: ");
-						for (Object object : rutas_ficheros) {
-							System.out.println(object);
 						}
 						ventanaServidorFichero(rutas_ficheros);
 						clip.setContenidoClipboard(backupClip);
@@ -290,8 +275,6 @@ public class EventoTeclasGlobal implements NativeKeyListener {
 				stringAnterior = string;
 				ficherosAnterior = null;
 				ventana.multicastControl.cliente.cambioServidor();
-			} else {
-				System.out.println("no");
 			}
 		}
 	}
@@ -313,6 +296,18 @@ public class EventoTeclasGlobal implements NativeKeyListener {
 				ventana.multicastControl.cliente.cambioServidor();
 			}
 		}
+	}
+	
+	public void pegarTexto(String texto) {
+		ventana.display.asyncExec(new Runnable() {
+			public void run() {
+				DatoSeleccion seleccion = new DatoSeleccion(texto);
+				clip.setContenidoClipboard(seleccion);
+				PulsarTeclas.pegar();
+				//ListaHistorial.anyadirHistoria(new Historial(texto, Historial.fechaActual()));
+				clip.setContenidoClipboard(backupClip);
+			}
+		});
 	}
 
 	/**
